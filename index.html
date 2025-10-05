@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧠 Hate Speech Detection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>🧠 Hate Speech & Slang Detection</h1>
+        <p class="subtitle">Type a comment below to detect hate or slang instantly</p>
+        
+        <div class="card">
+            <textarea id="comment" placeholder="Enter your comment..."></textarea>
+            <button id="analyzeBtn">Analyze Comment</button>
+        </div>
+
+        <div id="result" class="result-card hidden">
+            <h2 id="message"></h2>
+            <p><b>Status:</b> <span id="status"></span></p>
+            <p><b>Method:</b> <span id="method"></span></p>
+            <p><b>Confidence:</b> <span id="probability"></span></p>
+        </div>
+    </div>
+
+    <script>
+        const btn = document.getElementById("analyzeBtn");
+        const resultDiv = document.getElementById("result");
+        const message = document.getElementById("message");
+        const statusEl = document.getElementById("status");
+        const methodEl = document.getElementById("method");
+        const probEl = document.getElementById("probability");
+
+        btn.addEventListener("click", async () => {
+            const comment = document.getElementById("comment").value.trim();
+            if (!comment) {
+                alert("⚠ Please enter a comment!");
+                return;
+            }
+
+            message.textContent = "⏳ Analyzing...";
+            resultDiv.classList.remove("hidden");
+
+            try {
+                const response = await fetch("/check_comment", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ comment })
+                });
+
+                const data = await response.json();
+
+                message.textContent = data.message;
+                statusEl.textContent = data.status.toUpperCase();
+                methodEl.textContent = data.method;
+                probEl.textContent = data.probability ? data.probability : "N/A";
+
+                resultDiv.classList.remove("hidden");
+                resultDiv.className = data.status === "blocked" ? "result-card blocked" : "result-card allowed";
+            } catch (err) {
+                message.textContent = "❌ Error analyzing comment!";
+                console.error(err);
+            }
+        });
+    </script>
+</body>
+</html>
